@@ -1,0 +1,147 @@
+---
+title: "Data Analysis MP"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+```{r setup, include=TRUE}
+
+library(tidyverse)
+library(ggplot2)
+library(jtools)
+library(readxl)
+library(modelsummary)
+library(gt)
+library(broom)
+
+data <- read_csv("Final Data MP.csv")
+check <- read.csv("check data.csv")
+
+```
+
+1	Burke County — Cleveland
+2	McDowell County — Granville
+3	Jackson County — Rockingham
+4	Cherokee County — Stanly
+5	Haywood County — Martin
+6	Rutherford County — Montgomery
+7	Macon County — Ashe
+8	Madison County — Davidson
+9	Henderson County — Wilson
+10	Transylvania County — Northampton
+11	Swain County — Catawba 
+12	Watauga County — Pott 
+13	Yancey County — Union
+14	Graham County — Hyde 
+15	Buncombe County — Gaston
+16	Avery County — Perquimans
+17	Polk County — Camden
+18	Mitchell County — Bertie
+19	Clay County — Onslow 
+
+```{r, echo=TRUE}
+
+ind2011 <- ifelse(data$year == 2011, 1, 0)
+ind2012 <- ifelse(data$year == 2012, 1, 0)
+ind2013 <- ifelse(data$year == 2013, 1, 0)
+#ind2014 <- ifelse(data$year == 2014, 1, 0)
+ind2015 <- ifelse(data$year == 2015, 1, 0)
+ind2016 <- ifelse(data$year == 2016, 1, 0)
+ind2017 <- ifelse(data$year == 2017, 1, 0)
+ind2018 <- ifelse(data$year == 2018, 1, 0)
+
+reg_check1 <- lm(voter_part ~  binary_treated * (ind2011 + ind2012 + ind2013 + ind2015 + ind2016 + ind2017 + ind2018), data = data)
+
+reg_check2 <- lm(comments ~  binary_treated *  (ind2011 + ind2012 + ind2013 + ind2015 + ind2016 + ind2017 + ind2018), data = data)
+
+reg_check3 <- lm(don_number ~  binary_treated *  (ind2011 + ind2012 + ind2013 + ind2015 + ind2016 + ind2017 + ind2018), data = data)
+
+reg_check4 <- lm(don_sum ~  binary_treated * (ind2011 + ind2012 + ind2013 + ind2015 + ind2016 + ind2017 + ind2018), data = data)
+
+reg_check5 <- lm(don_uni ~  binary_treated *  (ind2011 + ind2012 + ind2013 + ind2015 + ind2016 + ind2017 + ind2018), data = data)
+
+reg_check1_tidy <- tidy(reg_check1, conf.int = TRUE)
+reg_check1_tidy2<-reg_check1_tidy[10:16,]
+reg_check1_tidy2$rounds <- factor(c("2011", "2012", "2013", "2015","2016","2017","2018"), levels = c("2011", "2012", "2013", "2015","2016","2017","2018"))
+figure1 <- ggplot(data = reg_check1_tidy2, aes(x = rounds, y = estimate, ymin = conf.low, ymax = conf.high)) + geom_pointrange()+
+  labs(title="Voter Participation", x ="Years", y = "Difference between treated and untreated")+
+   theme_nice()
+
+reg_check2_tidy <- tidy(reg_check2, conf.int = TRUE)
+reg_check1_tidy2<-reg_check2_tidy[10:16,]
+reg_check1_tidy2$rounds <- factor(c("2011", "2012", "2013", "2015","2016","2017","2018"), levels = c("2011", "2012", "2013", "2015","2016","2017","2018"))
+figure2 <- ggplot(data = reg_check1_tidy2, aes(x = rounds, y = estimate, ymin = conf.low, ymax = conf.high)) + geom_pointrange() + 
+   labs(title="Comments", x ="Years", y = "Difference between treated and untreated")+
+   theme_nice()
+
+reg_check3_tidy <- tidy(reg_check3, conf.int = TRUE)
+reg_check1_tidy2<-reg_check3_tidy[10:16,]
+reg_check1_tidy2$rounds <- factor(c("2011", "2012", "2013", "2015","2016","2017","2018"), levels = c("2011", "2012", "2013", "2015","2016","2017","2018"))
+figure3 <- ggplot(data = reg_check1_tidy2, aes(x = rounds, y = estimate, ymin = conf.low, ymax = conf.high)) + geom_pointrange() +
+   labs(title="Number of donations", x ="Years", y = "Difference between treated and untreated")+
+   theme_nice()
+
+reg_check4_tidy <- tidy(reg_check4, conf.int = TRUE)
+reg_check1_tidy2<-reg_check4_tidy[10:16,]
+reg_check1_tidy2$rounds <- factor(c("2011", "2012", "2013", "2015","2016","2017","2018"), levels = c("2011", "2012", "2013", "2015","2016","2017","2018"))
+figure4 <- ggplot(data = reg_check1_tidy2, aes(x = rounds, y = estimate, ymin = conf.low, ymax = conf.high)) + geom_pointrange() +
+   labs(title="Sum of donations", x ="Years", y = "Difference between treated and untreated")+
+   theme_nice()
+
+reg_check5_tidy <- tidy(reg_check5, conf.int = TRUE)
+reg_check1_tidy2<-reg_check5_tidy[10:16,]
+reg_check1_tidy2$rounds <- factor(c("2011", "2012", "2013", "2015","2016","2017","2018"), levels = c("2011", "2012", "2013", "2015","2016","2017","2018"))
+figure5 <- ggplot(data = reg_check1_tidy2, aes(x = rounds, y = estimate, ymin = conf.low, ymax = conf.high)) + geom_pointrange() +
+   labs(title="Unique donations", x ="Years", y = "Difference between treated and untreated")+
+  theme_nice()
+
+#This should, if I am doing it right, look at the difference between treated and untreated counties in a given year. If there was an effect, it would be significant after treatment, however we can also see that there is no huge effect before treatment either. https://stats.stackexchange.com/questions/160359/difference-in-difference-method-how-to-test-for-assumption-of-common-trend-betw 
+
+
+#ggsave("figure1.jpg", figure1)
+#ggsave("figure2.jpg", figure2)
+#ggsave("figure3.jpg", figure3)
+#ggsave("figure4.jpg", figure4)
+#ggsave("figure5.jpg", figure5)
+
+
+
+```
+
+
+```{r, echo=TRUE}
+#check for treatment among all counties
+
+reg1 <- lm (don_number ~ binary_2014 * binary_treated, data= data)
+reg2 <- lm(don_sum ~ binary_2014 * binary_treated, data= data)
+reg3 <- lm(don_uni ~ binary_2014 * binary_treated, data= data)
+reg4 <- lm(comments ~ binary_2014 * binary_treated, data= data)
+reg5 <- lm(voter_part ~ binary_2014 * binary_treated, data= data)
+
+summary(reg1) #number of donations
+summary(reg2) #sum total of donations
+summary(reg3) #unique donations
+summary(reg4) #number of comments
+summary(reg5) #percent voter participation
+
+
+#with controls 
+reg6 <- lm (don_number ~ binary_2014 * binary_treated + binary_congress +	journos	+ stories +	pop	+ perc_aian	+ perc_asian +	perc_black + perc_white + 	median_age +	perc_hispanic +	perc_hs	+ perc_bach +	per_cap_income , data= data)
+reg7 <- lm(don_sum ~ binary_2014 * binary_treated + binary_congress +	journos	+ stories +	pop	+ perc_aian	+ perc_asian +	perc_black +	perc_white	+ 	median_age +	perc_hispanic +	perc_hs	+ perc_bach +	per_cap_income, data= data)
+reg8 <- lm(don_uni ~ binary_2014 * binary_treated + binary_congress +	journos	+ stories +	pop	+ perc_aian	+ perc_asian +	perc_black  +	perc_white	+ 	median_age +	perc_hispanic +	perc_hs	+ perc_bach +	per_cap_income, data= data)
+reg9 <- lm(comments ~ binary_2014 * binary_treated+ binary_congress +	journos	+ stories +	pop	+ perc_aian	+ perc_asian +	perc_black  +	perc_white	+ 	median_age +	perc_hispanic +	perc_hs	+ perc_bach +	per_cap_income, data= data)
+reg10 <- lm(voter_part ~ binary_2014 * binary_treated + binary_congress +	journos	+ stories +	pop	+ perc_aian	+ perc_asian +	perc_black  +	perc_white	+ 	median_age +	perc_hispanic +	perc_hs	+ perc_bach +	per_cap_income, data= data)
+
+summary(reg6) #number of donations
+summary(reg7) #sum of donations
+summary(reg8) #unique donations
+summary(reg9) #number of comments
+summary(reg10) #voter participation 
+
+
+export_summs(reg1, reg2, reg3, reg4, reg5, model.names = c("Number of Donations", "Sum of Donations", "Unique Donations","Number of Comments", "Voter Participation"), to.file="xlsx", file.name = "basic_regs.xlsx")
+
+export_summs(reg6, reg7, reg8, reg9, reg10, model.names = c("Number of Donations", "Sum of Donations", "Unique Donations","Number of Comments", "Voter Participation"), to.file="xlsx", file.name = "full_regs.xlsx")
